@@ -1,0 +1,90 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath "com.github.maiflai:gradle-scalatest:0.11"
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        //mavenCentral()
+    }
+
+    apply plugin: 'idea'
+
+    idea {
+        module {
+            downloadJavadoc = false
+            downloadSources = true
+        }
+    }
+}
+
+subprojects {
+    repositories {
+        jcenter()
+        maven { url "http://dl.bintray.com/spark-packages/maven" }
+        //mavenCentral()
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'scala'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'com.github.maiflai.scalatest'
+
+    sourceCompatibility = 1.8
+
+    configurations {
+        provided
+        providedRuntime
+        spark
+    }
+
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        main.runtimeClasspath += configurations.provided
+        main.runtimeClasspath += configurations.providedRuntime
+
+        test.compileClasspath += configurations.provided
+        test.runtimeClasspath += configurations.provided
+        test.runtimeClasspath += configurations.providedRuntime
+    }
+
+    tasks.withType(ScalaCompile) {
+        scalaCompileOptions.deprecation = false
+        //scalaCompileOptions.unchecked = false
+        //scalaCompileOptions.additionalParameters = ['-nowarn']
+        //options.warnings = false
+        //options.compilerArgs = ["-Xmax-classfile-name 130"]
+    }
+
+    ext {
+        scala_version = '2.11'
+        spark_version = '1.6.1'
+    }
+
+    dependencies {
+        provided "org.apache.spark:spark-core_$scala_version:$spark_version"
+        provided "org.apache.spark:spark-streaming_$scala_version:$spark_version"
+        provided "org.apache.spark:spark-mllib_$scala_version:$spark_version"
+        provided "org.apache.spark:spark-sql_$scala_version:$spark_version"
+
+        compile 'com.google.guava:guava:19.0'
+        //compile 'io.fastjson:boon:0.33'
+        compile 'com.alibaba:fastjson:1.2.31'
+        compile group: 'org.json', name: 'json', version: '20151123'
+        compile 'org.apache.spark:spark-streaming-kafka_2.11:1.6.1'
+        //compile files('/home/rooneyma/push_sample/dependency/libs/commons-pool2-2.0.jar')
+        //compile files('/home/rooneyma/push_sample/dependency/libs/nameserver.jar')
+        //compile files('/home/rooneyma/push_sample/dependency/libs/jedis-2.6.0.jar')
+        //compile files('/home/rooneyma/push_sample/dependency/libs/bossapi-1.0.jar')
+        providedRuntime 'mysql:mysql-connector-java:5.1.6'
+
+        testCompile "junit:junit:4.12"
+        testCompile "org.scalatest:scalatest_$scala_version:2.2.5"
+        testCompile "org.scalacheck:scalacheck_$scala_version:1.12.1"
+        testRuntime 'org.pegdown:pegdown:1.1.0'
+    }
+}
